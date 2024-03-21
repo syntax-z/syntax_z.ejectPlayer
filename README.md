@@ -5,6 +5,8 @@
 Eject 1 or more unlucky employee(s) out of the ship. This only works when the ship is in space. 
 Everyone needs the mod for it to work.
 
+You can download it on thunderstore as well: https://thunderstore.io/c/lethal-company/p/syntax_z/ejectPlayer/ 
+
 
 ## Commands
 
