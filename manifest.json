@@ -1,0 +1,11 @@
+{
+    "name": "syntax_z.ejectPlayer",
+    "version_number": "1.1.0",
+    "website_url": "https://github.com/syntax-z/syntax_z.ejectPlayer",
+    "description": "An Eject Player Mod. Eject 1 or more unlucky employee(s) out of the ship. This only works when the ship is in space. Everyone needs the mod for it to work.",
+    "dependencies": [
+        "BepInEx-BepInExPack-5.4.2100",
+        "LethalAPI-LethalAPI_Terminal-1.0.1",
+        "xilophor-LethalNetworkAPI-2.1.6"
+    ]
+}

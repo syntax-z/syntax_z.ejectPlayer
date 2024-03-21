@@ -50,7 +50,17 @@ namespace syntax_z.ejectPlayer
 
         private static void ReceiveFromServer(string data)
         {
+            string ejectedID = data.Split('/')[1];
+            string playerID = $"{GameNetworkManager.Instance.localPlayerController.playerClientId}";
+            string msg = data.Split('/')[2];
 
+            globalMessage.Value = msg;
+            if (ejectedID == playerID)
+            {
+                StartOfRoundPatch.notsafe = true;
+            }
+
+            localEject = true;
         }
         private static void ReceiveFromClient(string data, ulong id)
         {
@@ -60,14 +70,7 @@ namespace syntax_z.ejectPlayer
         {
             if (data.Contains("eject/"))
             {
-                string ejectedID = data.Split('/')[1];
-                string playerID = $"{GameNetworkManager.Instance.localPlayerController.playerClientId}";
-
-                if (ejectedID == playerID)
-                {
-                    StartOfRoundPatch.notsafe = true;
-                }
-                localEject = true;
+                customServerMessage.SendAllClients(data);
             }
         }
 
@@ -91,23 +94,20 @@ namespace syntax_z.ejectPlayer
 
         [TerminalCommand("eject")]
         [CommandInfo("eg. eject (playerID) (message)")]
-        public string ejectCommand(ulong playerID, string msg)
+        public string ejectCommand(ulong playerID, [RemainingText] string msg)
         {
-            if (!StartOfRound.Instance.fullyLoadedPlayers.Contains(playerID))
+            if (!StartOfRound.Instance.ClientPlayerList.Keys.Contains(playerID))
                 return "Invalid. Type \"list\" to see the available IDs";
 
             if (GameNetworkManager.Instance.localPlayerController.playersManager.travellingToNewLevel || !GameNetworkManager.Instance.localPlayerController.playersManager.inShipPhase)
                 return "Can't eject player at this moment";
 
-            foreach (PlayerControllerB player in StartOfRound.Instance.allPlayerScripts)
+            for (int i = 0; i < StartOfRound.Instance.allPlayerScripts.Length; i++)
             {
-                if (player.playerClientId == playerID)
+                if (StartOfRound.Instance.allPlayerScripts[i].playerClientId == playerID)
                 {
-
-                    string name = $"{player.playerUsername}";
-                    globalMessage.Value = msg;
-                    customClientMessage.SendServer($"eject/{playerID}");
-                    return $"ejecting {name} from ship";
+                    customClientMessage.SendServer($"eject/{playerID}/{msg}");
+                    return "ejecting player from ship";
                 }
             }
             return "Something went wrong. Make sure you're typing the correct number.";
