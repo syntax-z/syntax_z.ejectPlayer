@@ -6,6 +6,8 @@ using LethalAPI.LibTerminal;
 using LethalAPI.LibTerminal.Attributes;
 using LethalAPI.LibTerminal.Models;
 using LethalNetworkAPI;
+using System.Numerics;
+using System.Collections.Generic;
 
 
 
@@ -17,7 +19,7 @@ namespace syntax_z.ejectPlayer
     {
         private const string modGUID = "syntax_z.ejectPlayer";
         private const string modName = "syntax_z.ejectPlayer";
-        private const string modVersion = "1.0.0";
+        private const string modVersion = "1.2.0";
         private readonly Harmony _harmony = new(modGUID);
         public static Plugin? Instance;
         private TerminalModRegistry? TCommands;
@@ -28,6 +30,7 @@ namespace syntax_z.ejectPlayer
         public static readonly LethalServerMessage<string> customServerMessage = new LethalServerMessage<string>(identifier: "ejectingPlayers", ReceiveByServer);
         public static readonly LethalClientMessage<string> customClientMessage = new LethalClientMessage<string>(identifier: "ejectingPlayers", ReceiveFromServer, ReceiveFromClient);
         public static LethalNetworkVariable<string> globalMessage = new LethalNetworkVariable<string>(identifier: "globalMessage");
+        public static LethalNetworkVariable<bool> tempEject = new LethalNetworkVariable<bool>(identifier: "tempEject");
         private void Awake()
         {
             PatchAllStuff();
@@ -80,14 +83,12 @@ namespace syntax_z.ejectPlayer
         public string listCommand()
         {
             string name = "";
-            string clientID;
-            for (int i = 0; i < StartOfRound.Instance.allPlayerScripts.Length; i++)
-            {
-                // Prevents dummy PlayerScript names from showing up on screen
-                if (StartOfRound.Instance.allPlayerScripts[i].playerSteamId == 0) continue;
+            PlayerControllerB player;
 
-                clientID = $"{StartOfRound.Instance.allPlayerScripts[i].playerClientId}";
-                name += $"{StartOfRound.Instance.allPlayerScripts[i].playerUsername} || ID: {clientID}\n";
+            foreach (KeyValuePair<ulong, int> clientPlayer in StartOfRound.Instance.ClientPlayerList)
+            {
+                player = StartOfRound.Instance.allPlayerScripts[StartOfRound.Instance.ClientPlayerList[clientPlayer.Key]];
+                name += $"{player.playerUsername} || ID: {player.playerClientId}\n";
             }
             return name;
         }
@@ -102,9 +103,9 @@ namespace syntax_z.ejectPlayer
             if (GameNetworkManager.Instance.localPlayerController.playersManager.travellingToNewLevel || !GameNetworkManager.Instance.localPlayerController.playersManager.inShipPhase)
                 return "Can't eject player at this moment";
 
-            for (int i = 0; i < StartOfRound.Instance.allPlayerScripts.Length; i++)
+            foreach (PlayerControllerB player in StartOfRound.Instance.allPlayerScripts)
             {
-                if (StartOfRound.Instance.allPlayerScripts[i].playerClientId == playerID)
+                if (player.playerClientId == playerID)
                 {
                     customClientMessage.SendServer($"eject/{playerID}/{msg}");
                     return "ejecting player from ship";
@@ -114,5 +115,40 @@ namespace syntax_z.ejectPlayer
         }
 
 
+
+        [TerminalCommand("rnd_eject")]
+        [CommandInfo("eject a random player from the ship")]
+        public string rndEjectCommand()
+        {
+            if (GameNetworkManager.Instance.localPlayerController.playersManager.travellingToNewLevel || !GameNetworkManager.Instance.localPlayerController.playersManager.inShipPhase)
+                return "Can't eject player at this moment";
+
+            Random random = new Random();
+            ulong randomNum = (ulong)random.Next(0, StartOfRound.Instance.ClientPlayerList.Keys.ToArray().Length);
+            ulong randomPlayerID = (ulong)StartOfRound.Instance.ClientPlayerList[randomNum];
+
+            customClientMessage.SendServer($"eject/{randomPlayerID}/Ejected");
+            return "ejecting a random player from the ship";
+        }
+
+
+        /*
+        [TerminalCommand("rndtemp_eject")]
+        [CommandInfo("Ejects and kills player for the next round")]
+        public string tempEjectCommand()
+        {
+            if (GameNetworkManager.Instance.localPlayerController.playersManager.travellingToNewLevel || !GameNetworkManager.Instance.localPlayerController.playersManager.inShipPhase)
+                return "Can't eject player at this moment";
+
+            // TODO: Ignore dummy player scripts
+            Random random = new Random();
+            int randomNum = random.Next(0, StartOfRound.Instance.allPlayerScripts.ToArray().Length);
+            ulong randomPlayerID = StartOfRound.Instance.allPlayerScripts[randomNum].playerClientId;
+            tempEject.Value = true;
+
+            customClientMessage.SendServer($"eject/{randomPlayerID}/Ejected");
+            return "ejecting random player from ship";
+        }
+        */
     }
 }

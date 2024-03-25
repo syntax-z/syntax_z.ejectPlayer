@@ -1,6 +1,6 @@
 {
     "name": "ejectPlayer",
-    "version_number": "1.1.0",
+    "version_number": "1.2.0",
     "website_url": "https://github.com/syntax-z/syntax_z.ejectPlayer",
     "description": "An Eject Player Mod. Eject 1 or more unlucky employee(s) out of the ship. This only works when the ship is in space. Everyone needs the mod for it to work.",
     "dependencies": [

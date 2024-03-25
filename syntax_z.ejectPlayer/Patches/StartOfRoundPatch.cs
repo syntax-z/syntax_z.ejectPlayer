@@ -21,7 +21,6 @@ namespace syntax_z.ejectPlayer.Patches
                 Plugin.localEject = false;
                 currentlyEjectingPlayer = true;
                 StartOfRound.Instance.StartCoroutine(EjectPlayer(__instance));
-
             }
 
         }
@@ -53,7 +52,6 @@ namespace syntax_z.ejectPlayer.Patches
                 __instance.hangarDoorsClosed = false;
                 __instance.suckingPlayersOutOfShip = true;
                 __instance.suckingFurnitureOutOfShip = true;
-                //__instance.choseRandomFlyDirForPlayer = false;
                 SuckLocalPlayerOutOfShipDoor(__instance);
                 GameNetworkManager.Instance.localPlayerController.inSpecialInteractAnimation = true;
                 GameNetworkManager.Instance.localPlayerController.DropAllHeldItems();
@@ -63,8 +61,6 @@ namespace syntax_z.ejectPlayer.Patches
 
 
             yield return new WaitForSeconds(6f);
-
-            //SoundManager.Instance.SetDiageticMixerSnapshot(3, 2f);
             HUDManager.Instance.ShowPlayersFiredScreen(show: true);
 
 
@@ -78,7 +74,6 @@ namespace syntax_z.ejectPlayer.Patches
             __instance.shipRoomLights.SetShipLightsOnLocalClientOnly(setLightsOn: true);
             __instance.shipDoorsAnimator.SetBool("OpenInOrbit", value: false);
             __instance.shipAnimatorObject.gameObject.GetComponent<Animator>().SetBool("AlarmRinging", value: false);
-            //__instance.choseRandomFlyDirForPlayer = false;
             __instance.suckingPower = 0f;
             HUDManager.Instance.ShowPlayersFiredScreen(show: false);
 
@@ -87,6 +82,12 @@ namespace syntax_z.ejectPlayer.Patches
             {
                 GameNetworkManager.Instance.localPlayerController.inSpecialInteractAnimation = false;
                 GameNetworkManager.Instance.localPlayerController.TeleportPlayer(__instance.playerSpawnPositions[GameNetworkManager.Instance.localPlayerController.playerClientId].position);
+                /*
+                if (Plugin.tempEject.Value == true)
+                {
+                    GameNetworkManager.Instance.localPlayerController.KillPlayer(UnityEngine.Vector3.zero, spawnBody: false, causeOfDeath: CauseOfDeath.Gravity);
+                }
+                */
             }
 
             notsafe = false;
@@ -116,10 +117,19 @@ namespace syntax_z.ejectPlayer.Patches
             }
 
 
-            //__instance.randomFlyDir = new Vector3(-1f, 0f, UnityEngine.Random.Range(-0.7f, 0.7f));
             GameNetworkManager.Instance.localPlayerController.externalForces = Vector3.Scale(Vector3.one, new Vector3(-1f, 0f, UnityEngine.Random.Range(-0.7f, 0.7f))) * 70f;
         }
 
+
+        /*
+        [HarmonyPatch(typeof(StartOfRound), nameof(StartOfRound.ReviveDeadPlayers))]
+        [HarmonyPrefix]
+        private static bool ReviveDeadPlayersPatch()
+        {
+            Plugin.tempEject.Value = false;
+            return true;
+        }
+        */
 
     }
 }
